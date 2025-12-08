@@ -1,0 +1,17 @@
+service/LoginService.class
+model/Usuario.class
+config/DB.class
+service/Login.class
+service/Producto.class
+model/Categorias.class
+service/ProductoService.class
+dao/VentasDAO.class
+dao/UsuarioDAO.class
+dao/DetalleVentaDAO.class
+dao/CategoriasDAO.class
+service/Venta.class
+model/Producto.class
+model/DetalleVenta.class
+controller/Reporte.class
+dao/ProductoDAO.class
+model/Ventas.class
