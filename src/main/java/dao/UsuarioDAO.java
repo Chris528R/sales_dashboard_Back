@@ -18,7 +18,7 @@ public class UsuarioDAO {
             
             if(rs.next()){
                 user = new Usuario(
-                        rs.getInt("id"),
+                        rs.getInt("id_usuario"),
                         rs.getString("nombre"),
                         rs.getString("contrasenia")
                 );

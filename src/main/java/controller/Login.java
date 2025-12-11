@@ -19,16 +19,27 @@ public class Login extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // 1. Configurar Headers
+        response.setHeader("Access-Control-Allow-Origin", "*"); // O "http://localhost:3000"
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json"); 
+
+        // 2. Obtener parámetros (Ahora sí funcionará con el cambio del front)
         String nombre = request.getParameter("nombre");
         String cont = request.getParameter("cont");
+
         Usuario user = loginService.login(nombre, cont);
-        
-        response.setContentType("text/html");
-        PrintWriter out = response.getWriter();
-        if(user != null){
-            out.println("{\"status\":\"yes\""+"\"}");
-        } else {
-            out.println("{\"status\":\"no\"}");            
+
+        try (PrintWriter out = response.getWriter()) {
+            if(user != null){
+                
+                out.print("{\"status\":\"success\"}");
+            } else {
+                out.print("{\"status\":\"no\"}");            
+            }
+            out.flush();
         }
     }
 }

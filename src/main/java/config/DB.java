@@ -5,7 +5,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 
 public class DB {
-    private static final String URL = "jdbc:mysql://mysql:3306/proyecto?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+    private static final String URL = "jdbc:mysql://localhost/ventas_ds?serverTimezone=UTC";
     private static final String USER = "root";
     private static final String PASSWORD = "1234";
 
