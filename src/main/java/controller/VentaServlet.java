@@ -126,4 +126,6 @@ public class VentaServlet extends HttpServlet {
             }
         }
     }
+    
+    //TODO actualizar y eliminar todas las ventas
 }

@@ -120,4 +120,6 @@ public class VentasDAO {
             } catch (SQLException e) { e.printStackTrace(); }
         }
     }
+    
+    // TODO actualizar y eliminar una venta
 }

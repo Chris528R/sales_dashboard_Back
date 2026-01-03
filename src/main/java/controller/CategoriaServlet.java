@@ -51,4 +51,6 @@ public class CategoriaServlet extends HttpServlet {
             out.print(json.toString());
         }
     }
+    
+    //TODO agregar para crear y eliminar una categoria
 }

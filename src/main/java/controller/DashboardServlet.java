@@ -9,6 +9,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 @WebServlet(name = "DashboardServlet", urlPatterns = {"/api/dashboard"})
 public class DashboardServlet extends HttpServlet {
@@ -35,7 +36,7 @@ public class DashboardServlet extends HttpServlet {
 
         // Obtener datos del DAO
         double ventasHoy = dao.obtenerVentasHoy();
-        int bajoStock = dao.contarProductosBajoStock(10); // Alerta si hay menos de 10
+        List<String> bajoStock = dao.obtenerListaBajoStock(5); // Muestra los productos con menos de 5 articulos
         Map<String, Double> ventasPorCat = dao.obtenerVentasPorCategoria();
         Map<String, Integer> topProductos = dao.obtenerTopProductos();
 
@@ -44,7 +45,6 @@ public class DashboardServlet extends HttpServlet {
 
             // Datos simples
             json.append("\"ventasHoy\":").append(ventasHoy).append(",");
-            json.append("\"productosBajoStock\":").append(bajoStock).append(",");
 
             // Array Categorías
             json.append("\"ventasPorCategoria\":[");
@@ -63,6 +63,15 @@ public class DashboardServlet extends HttpServlet {
                 json.append("{\"producto\":\"").append(entry.getKey()).append("\",")
                     .append("\"cantidad\":").append(entry.getValue()).append("}");
                 if (j++ < topProductos.size() - 1) json.append(",");
+            }
+            json.append("]").append(",");
+            
+            // Array con los productos con menor stock
+            json.append("\"productosBajoStock\":[");
+            j = 0;
+            for (String cad : bajoStock) {
+                json.append("\"").append(cad).append("\"");
+                if (j++ < bajoStock.size() - 1) json.append(",");
             }
             json.append("]");
 

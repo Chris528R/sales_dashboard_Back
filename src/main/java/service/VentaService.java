@@ -19,4 +19,6 @@ public class VentaService {
     public List<DetalleVenta> obtenerDetalles(int idVenta) {
         return ventaDAO.obtenerDetalles(idVenta);
     }
+    
+    //TODO actualizar y eliminar una venta
 }
