@@ -11,4 +11,12 @@ public class VentaService {
     public boolean registrarVenta(Ventas venta, List<DetalleVenta> detalles) {
         return ventaDAO.registrarVenta(venta, detalles);
     }
+    
+    public List<Ventas> listarVentas() {
+        return ventaDAO.listarVentas();
+    }
+    
+    public List<DetalleVenta> obtenerDetalles(int idVenta) {
+        return ventaDAO.obtenerDetalles(idVenta);
+    }
 }

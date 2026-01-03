@@ -23,4 +23,9 @@ public class ProductoService {
     public boolean eliminar(int id) {
         return productoDAO.eliminar(id);
     }
+    
+    public List<Producto> listarBajoStock(int n) {
+        return productoDAO.listarBajoStock(n);
+    }
+    
 }

@@ -108,6 +108,28 @@ public class ProductoDAO {
         }
     }
 
+    // Obtener los productos que tienen menor Stock
+    public List<Producto> listarBajoStock(int limite) {
+        List<Producto> lista = new ArrayList<>();
+        String sql = "SELECT p.*, c.nombre_categoria FROM productos p " +
+                     "LEFT JOIN categorias c ON p.id_categoria = c.id_categoria " +
+                     "WHERE p.stock <= ? " +
+                     "ORDER BY p.stock ASC";
+
+        try (Connection conn = DB.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, limite);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Producto p = mapearProducto( rs );
+                lista.add(p);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return lista;
+    }
+    
     // Método auxiliar para no repetir código
     private Producto mapearProducto(ResultSet rs) throws SQLException {
         Producto p = new Producto();

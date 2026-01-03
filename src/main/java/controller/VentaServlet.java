@@ -78,4 +78,52 @@ public class VentaServlet extends HttpServlet {
             }
         }
     }
+    
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        setAccessControlHeaders(response);
+        response.setContentType("application/json;charset=UTF-8");
+        
+        String idStr = request.getParameter("id");
+        
+        try (PrintWriter out = response.getWriter()) {
+            
+            if (idStr == null) {
+                // CASO 1: LISTAR TODAS LAS VENTAS
+                List<Ventas> lista = service.listarVentas(); 
+                StringBuilder json = new StringBuilder("[");
+                for (int i = 0; i < lista.size(); i++) {
+                    Ventas v = lista.get(i);
+                    json.append("{")
+                        .append("\"id\":").append(v.getId()).append(",")
+                        .append("\"fecha\":\"").append(v.getFechaVenta()).append("\",") 
+                        .append("\"total\":").append(v.getTotal())
+                        .append("}");
+                    if (i < lista.size() - 1) json.append(",");
+                }
+                json.append("]");
+                out.print(json.toString());
+                
+            } else {
+                // CASO 2: VER DETALLE DE UNA VENTA ESPECÍFICA
+                int idVenta = Integer.parseInt(idStr);
+                List<DetalleVenta> detalles = service.obtenerDetalles(idVenta);
+                
+                StringBuilder json = new StringBuilder("[");
+                for (int i = 0; i < detalles.size(); i++) {
+                    DetalleVenta d = detalles.get(i);
+                    json.append("{")
+                        .append("\"id_producto\":").append(d.getIdProducto()).append(",")
+                        .append("\"cantidad\":").append(d.getCantidad()).append(",")
+                        .append("\"precio\":").append(d.getPrecioUnitario()).append(",")
+                        .append("\"subtotal\":").append(d.getSubtotal())
+                        .append("}");
+                    if (i < detalles.size() - 1) json.append(",");
+                }
+                json.append("]");
+                out.print(json.toString());
+            }
+        }
+    }
 }

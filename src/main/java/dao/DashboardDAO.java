@@ -75,4 +75,26 @@ public class DashboardDAO {
         } catch (Exception e) { e.printStackTrace(); }
         return datos;
     }
+    
+    // Obtener las ventas por mes
+    // Retorna un Mapa: Clave=Mes(int), Valor=Total(double)
+    public Map<Integer, Double> obtenerVentasPorMes() {
+        Map<Integer, Double> datos = new HashMap<>();
+        // Esta query agrupa por mes del año actual
+        String sql = "SELECT MONTH(fecha_venta) as mes, SUM(total) as total " +
+                     "FROM ventas " +
+                     "WHERE YEAR(fecha_venta) = YEAR(CURDATE()) " +
+                     "GROUP BY MONTH(fecha_venta) " +
+                     "ORDER BY MONTH(fecha_venta)";
+                     
+        try (Connection conn = DB.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while(rs.next()){
+                datos.put(rs.getInt("mes"), rs.getDouble("total"));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return datos;
+    }
 }

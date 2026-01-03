@@ -36,7 +36,14 @@ public class ProductoServlet extends HttpServlet {
         setAccessControlHeaders(response);
         response.setContentType("application/json;charset=UTF-8");
 
-        List<Producto> lista = service.listar();
+        String filtro = request.getParameter("filtro");
+        List<Producto> lista;
+
+        if ("bajo_stock".equals(filtro)) {
+            lista = service.listarBajoStock(5); // 5 por default
+        } else {
+            lista = service.listar();
+        }
         
         try (PrintWriter out = response.getWriter()) {
             StringBuilder json = new StringBuilder();
