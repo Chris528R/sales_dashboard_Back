@@ -20,5 +20,11 @@ public class VentaService {
         return ventaDAO.obtenerDetalles(idVenta);
     }
     
-    //TODO actualizar y eliminar una venta
+    public boolean eliminarVenta(int idVenta){
+        return ventaDAO.eliminarVenta(idVenta);
+    }
+    
+    public boolean actualizarVenta(Ventas ventaAct, List<DetalleVenta> nuevosDetalles){
+        return ventaDAO.actualizarVenta(ventaAct, nuevosDetalles);
+    }
 }

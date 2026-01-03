@@ -18,7 +18,7 @@ public class ProductoServlet extends HttpServlet {
 
     // Configuración CORS
     private void setAccessControlHeaders(HttpServletResponse resp) {
-        resp.setHeader("Access-Control-Allow-Origin", "*"); 
+        resp.setHeader("Access-Control-Allow-Origin", "*");
         resp.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
     }
@@ -44,21 +44,22 @@ public class ProductoServlet extends HttpServlet {
         } else {
             lista = service.listar();
         }
-        
-        try (PrintWriter out = response.getWriter()) {
+
+        try ( PrintWriter out = response.getWriter()) {
             StringBuilder json = new StringBuilder();
             json.append("[");
 
             for (int i = 0; i < lista.size(); i++) {
                 Producto p = lista.get(i);
                 json.append("{")
-                    .append("\"id\":").append(p.getId()).append(",")
-                    .append("\"nombre\":\"").append(p.getNombre()).append("\",")
-                    .append("\"descripcion\":\"").append(p.getDescripcion()).append("\",")
-                    .append("\"precio\":").append(p.getPrecio()).append(",")
-                    .append("\"stock\":").append(p.getStock()).append(",")
-                    .append("\"categoria\":").append(p.getIdCategoria())
-                    .append("}");
+                        .append("\"id\":").append(p.getId()).append(",")
+                        .append("\"nombre\":\"").append(p.getNombre()).append("\",")
+                        .append("\"descripcion\":\"").append(p.getDescripcion()).append("\",")
+                        .append("\"precio\":").append(p.getPrecio()).append(",")
+                        .append("\"stock\":").append(p.getStock()).append(",")
+                        .append("\"id_categoria\":").append(p.getIdCategoria()).append(",")
+                        .append("\"categoria\":\"").append(p.getCategoria()).append("\"")
+                        .append("}");
                 if (i < lista.size() - 1) {
                     json.append(",");
                 }
@@ -68,37 +69,88 @@ public class ProductoServlet extends HttpServlet {
         }
     }
 
-    // Registrar producto (POST)
+    // Registrar / Actualizar productos
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         setAccessControlHeaders(response);
         response.setContentType("application/json;charset=UTF-8");
 
-        String nombre = request.getParameter("nombre");
-        String descripcion = request.getParameter("descripcion");
-        String tipo = request.getParameter("tipo");
-        double precio = Double.parseDouble(request.getParameter("precio"));
-        int stock = Integer.parseInt(request.getParameter("stock"));
-        int categoria = Integer.parseInt(request.getParameter("categoria"));
-        String unidad = request.getParameter("unidad");
+        try {
+            String nombre = request.getParameter("nombre");
+            String descripcion = request.getParameter("descripcion");
+            String tipo = request.getParameter("tipo");
 
-        Producto p = new Producto();
-        p.setNombre(nombre);
-        p.setDescripcion(descripcion);
-        p.setTipo(tipo);
-        p.setPrecio(precio);
-        p.setStock(stock);
-        p.setIdCategoria(categoria);
-        p.setUnidadMedida(unidad);
+            // Validaciones básicas para evitar NullPointerException si faltan datos
+            if (request.getParameter("precio") == null || request.getParameter("stock") == null) {
+                throw new Exception("Precio y Stock son obligatorios");
+            }
 
-        boolean exito = service.registrar(p);
+            double precio = Double.parseDouble(request.getParameter("precio"));
+            int stock = Integer.parseInt(request.getParameter("stock"));
+            int categoria = Integer.parseInt(request.getParameter("categoria"));
+            String unidad = request.getParameter("unidad");
 
-        try (PrintWriter out = response.getWriter()) {
-            out.print(exito ? "{\"status\":\"success\"}" : "{\"status\":\"error\"}");
+            Producto p = new Producto();
+            p.setNombre(nombre);
+            p.setDescripcion(descripcion);
+            p.setTipo(tipo);
+            p.setPrecio(precio);
+            p.setStock(stock);
+            p.setIdCategoria(categoria);
+            p.setUnidadMedida(unidad);
+
+            // Verificamos si es actualizacion o registro de nuevo producto
+            String idStr = request.getParameter("id");
+            boolean exito = false;
+
+            if (idStr != null && !idStr.isEmpty()) {
+                // ACTUALIZAR
+                int idProducto = Integer.parseInt(idStr);
+                p.setId(idProducto); 
+                exito = service.actualizar(p);
+            } else {
+                // CASO REGISTRAR 
+                exito = service.registrar(p);
+            }
+
+            try ( PrintWriter out = response.getWriter()) {
+                out.print(exito ? "{\"status\":\"success\"}" : "{\"status\":\"error\"}");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            try ( PrintWriter out = response.getWriter()) {
+                String msg = e.getMessage() != null ? e.getMessage().replace("\"", "'") : "Error desconocido";
+                out.print("{\"status\":\"error\", \"message\":\"" + msg + "\"}");
+            }
         }
     }
-    
-    // TODO Actualizar y eliminar producto
-    
+
+    // Eliminar producto (DELETE)
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        setAccessControlHeaders(response);
+        response.setContentType("application/json;charset=UTF-8");
+
+        String idParam = request.getParameter("id");
+
+        boolean eliminado = false;
+
+        if (idParam != null) {
+            int id = Integer.parseInt(idParam);
+            eliminado = service.eliminar(id);
+        }
+
+        try ( PrintWriter out = response.getWriter()) {
+            if (eliminado) {
+                out.print("{\"status\":\"success\"}");
+            } else {
+                out.print("{\"status\":\"error\"}");
+            }
+            out.flush();
+        }
+    }
+
 }

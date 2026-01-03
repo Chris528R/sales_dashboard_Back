@@ -51,6 +51,7 @@ public class VentasDAO {
                 dv.setCantidad(rs.getInt("cantidad"));
                 dv.setPrecioUnitario(rs.getDouble("precio_unitario"));
                 dv.setSubtotal(rs.getDouble("subtotal"));
+                dv.setNombre(rs.getString("nombre_producto"));
                 detalles.add(dv);
             }
         } catch (Exception e) { e.printStackTrace(); }
@@ -121,5 +122,136 @@ public class VentasDAO {
         }
     }
     
-    // TODO actualizar y eliminar una venta
+    // Eliminar venta
+    public boolean eliminarVenta(int idVenta) {
+        Connection conn = null;
+        PreparedStatement psStock = null;
+        PreparedStatement psDelete = null;
+        
+        List<DetalleVenta> detalles = obtenerDetalles(idVenta); //Obtenemos la informacion de la venta para poder regresar al stock anterior
+        
+        String sqlUpdateStock = "UPDATE productos SET stock = stock + ? WHERE id_producto = ?";
+        String sqlDeleteVenta = "DELETE FROM ventas WHERE id_venta = ?";
+
+        try {
+            conn = DB.getConnection();
+            conn.setAutoCommit(false); // Iniciar transacción
+
+            // Devolver productos al Stock
+            psStock = conn.prepareStatement(sqlUpdateStock);
+            for (DetalleVenta dv : detalles) {
+                psStock.setInt(1, dv.getCantidad());
+                psStock.setInt(2, dv.getIdProducto());
+                psStock.addBatch(); // Usamos batch por eficiencia
+            }
+            psStock.executeBatch();
+
+            // Eliminar la venta
+            psDelete = conn.prepareStatement(sqlDeleteVenta);
+            psDelete.setInt(1, idVenta);
+            int rows = psDelete.executeUpdate();
+
+            if (rows > 0) {
+                conn.commit(); // Confirmar cambios
+                return true;
+            } else {
+                conn.rollback();
+                return false;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            try { if (conn != null) conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            return false;
+        } finally {
+            try {
+                if (psStock != null) psStock.close();
+                if (psDelete != null) psDelete.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) { e.printStackTrace(); }
+        }
+    }
+    
+    // Actualizar venta
+    public boolean actualizarVenta(Ventas ventaEditada, List<DetalleVenta> nuevosDetalles) {
+        Connection conn = null;
+        PreparedStatement psStockDevolver = null;
+        PreparedStatement psBorrarDetalles = null;
+        PreparedStatement psUpdateVenta = null;
+        PreparedStatement psInsertDetalle = null;
+        PreparedStatement psStockDescontar = null;
+
+        // Recuperamos los detalles antes de actualizar para devolver ese stock específico
+        List<DetalleVenta> detallesViejos = obtenerDetalles(ventaEditada.getId());
+
+        String sqlStockMas = "UPDATE productos SET stock = stock + ? WHERE id_producto = ?";
+        String sqlBorrarDetalles = "DELETE FROM detalle_venta WHERE id_venta = ?";
+        String sqlUpdateVenta = "UPDATE ventas SET total = ? WHERE id_venta = ?";
+        String sqlInsertDetalle = "INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)";
+        String sqlStockMenos = "UPDATE productos SET stock = stock - ? WHERE id_producto = ?";
+
+        try {
+            conn = DB.getConnection();
+            conn.setAutoCommit(false);
+
+            // Devolver stock de la venta antigua
+            psStockDevolver = conn.prepareStatement(sqlStockMas);
+            for (DetalleVenta dv : detallesViejos) {
+                psStockDevolver.setInt(1, dv.getCantidad());
+                psStockDevolver.setInt(2, dv.getIdProducto());
+                psStockDevolver.addBatch();
+            }
+            psStockDevolver.executeBatch();
+
+            // Borrar detalles antiguos
+            psBorrarDetalles = conn.prepareStatement(sqlBorrarDetalles);
+            psBorrarDetalles.setInt(1, ventaEditada.getId());
+            psBorrarDetalles.executeUpdate();
+
+            // Actualizar Total nuevo
+            psUpdateVenta = conn.prepareStatement(sqlUpdateVenta);
+            psUpdateVenta.setDouble(1, ventaEditada.getTotal());
+            psUpdateVenta.setInt(2, ventaEditada.getId());
+            psUpdateVenta.executeUpdate();
+
+            // Insertar nuevos detalles y descontar nuevo stock
+            psInsertDetalle = conn.prepareStatement(sqlInsertDetalle);
+            psStockDescontar = conn.prepareStatement(sqlStockMenos);
+
+            for (DetalleVenta dv : nuevosDetalles) {
+                // Insertar detalle
+                psInsertDetalle.setInt(1, ventaEditada.getId());
+                psInsertDetalle.setInt(2, dv.getIdProducto());
+                psInsertDetalle.setInt(3, dv.getCantidad());
+                psInsertDetalle.setDouble(4, dv.getPrecioUnitario());
+                psInsertDetalle.setDouble(5, dv.getSubtotal());
+                psInsertDetalle.addBatch();
+
+                // Descontar stock
+                psStockDescontar.setInt(1, dv.getCantidad());
+                psStockDescontar.setInt(2, dv.getIdProducto());
+                psStockDescontar.addBatch();
+            }
+            psInsertDetalle.executeBatch();
+            psStockDescontar.executeBatch();
+
+            // Si no hubo errores, confirmamos todo
+            conn.commit();
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            try { if (conn != null) conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            return false;
+        } finally {
+            try {
+                if (psStockDevolver != null) psStockDevolver.close();
+                if (psBorrarDetalles != null) psBorrarDetalles.close();
+                if (psUpdateVenta != null) psUpdateVenta.close();
+                if (psInsertDetalle != null) psInsertDetalle.close();
+                if (psStockDescontar != null) psStockDescontar.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) { e.printStackTrace(); }
+        }
+    }
 }

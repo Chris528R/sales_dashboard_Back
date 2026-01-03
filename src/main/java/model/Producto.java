@@ -12,12 +12,18 @@ public class Producto {
     private String unidadMedida; 
     private Timestamp fechaRegistro;
     
+    private String nombreCategoria; //Auxiliar
+    
     public Producto() {}
     
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
+    
+    public String getCategoria() { return nombreCategoria; }
+    public void setCategoria(String nombreCategoria) { this.nombreCategoria = nombreCategoria; }
+    
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
     public String getTipo() { return tipo; }

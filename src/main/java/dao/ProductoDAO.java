@@ -142,6 +142,11 @@ public class ProductoDAO {
         p.setStock(rs.getInt("stock"));
         p.setUnidadMedida(rs.getString("unidad_medida"));
         p.setFechaRegistro(rs.getTimestamp("fecha_registro")); 
+        
+        try{
+            p.setCategoria(rs.getString("nombre_categoria"));
+        }catch(SQLException e){ /* No pasa nada*/ }
+        
         return p;
     }
 }
